@@ -8,7 +8,6 @@ import (
   "net"
   "bytes"
   "fmt"
-  //  "io"
 )
 
 
@@ -117,7 +116,6 @@ func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
   if err != nil {
     log.Fatal(err)
   }
-  log.Println("dialed")
   defer conn.Close()
   buffer := bytes.NewBufferString("")
   fmt.Fprintf(buffer, "monit.%s %s %d\n", metric, value, timestamp)
@@ -126,6 +124,7 @@ func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
 }
 
 func MonitServer(w http.ResponseWriter, req *http.Request) {
+  defer req.Body.Close()
   var monit Monit
   p := xml.NewParser(req.Body)
   p.CharsetReader = CharsetReader
