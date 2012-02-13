@@ -85,20 +85,13 @@ type Monit struct {
 }
 
 type Graphite struct {
-  conn net.Conn
+  addr string
 }
 
 var serviceq chan *Service
 
-func (graphite *Graphite) Setup(addr string) {
+func (graphite *Graphite) Setup() {
   log.Println("starting")
-  conn, err := net.Dial("tcp", addr)
-  graphite.conn = conn
-  if err != nil {
-    log.Fatal(err)
-  }
-  log.Println("dialed")
-  defer conn.Close()
   serviceq = make(chan *Service)
   for {
     service := <-serviceq
@@ -120,10 +113,16 @@ func (graphite *Graphite) Setup(addr string) {
 }
 
 func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
+  conn, err := net.Dial("tcp", graphite.addr)
+  if err != nil {
+    log.Fatal(err)
+  }
+  log.Println("dialed")
+  defer conn.Close()
   buffer := bytes.NewBufferString("")
   fmt.Fprintf(buffer, "monit.%s %s %d\n", metric, value, timestamp)
   log.Println(buffer.String())
-	graphite.conn.Write(buffer.Bytes())
+	conn.Write(buffer.Bytes())
 }
 
 func MonitServer(w http.ResponseWriter, req *http.Request) {
@@ -141,8 +140,8 @@ func MonitServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func main(){
-  var graphite Graphite
-  go graphite.Setup("localhost:2003")
+  graphite := Graphite{addr: "localhost:2003"}
+  go graphite.Setup()
 
 	http.HandleFunc("/collector", MonitServer)
   err := http.ListenAndServe(":3005", nil)
