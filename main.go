@@ -8,7 +8,12 @@ import (
   "net"
   "bytes"
   "fmt"
+  "flag"
 )
+
+
+var carbonAddress *string = flag.String("c", "localhost:2003", "carbon address")
+var forwarderAddress *string = flag.String("l", ":3005", "forwarder listening address")
 
 
 type Server struct{
@@ -114,7 +119,13 @@ func (graphite *Graphite) Setup() {
 func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
   conn, err := net.Dial("tcp", graphite.addr)
   if err != nil {
-    log.Fatal(err)
+    switch t := err.(type){
+    default:
+      log.Fatal(err)
+    case *net.OpError:
+      //retry
+      conn, _ = net.Dial("tcp", graphite.addr)
+    }
   }
   defer conn.Close()
   buffer := bytes.NewBufferString("")
@@ -139,11 +150,13 @@ func MonitServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func main(){
-  graphite := Graphite{addr: "localhost:2003"}
+  log.Println("Forwarding m/monit to ", *carbonAddress)
+  graphite := Graphite{addr: *carbonAddress}
   go graphite.Setup()
 
 	http.HandleFunc("/collector", MonitServer)
-  err := http.ListenAndServe(":3005", nil)
+  log.Println("Forwarder listening input on: ", *forwarderAddress)
+  err := http.ListenAndServe(*forwarderAddress, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err.String())
 	}
