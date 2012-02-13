@@ -1,4 +1,0 @@
-all : main
-main : main.go
-	/opt/go/bin/6g main.go
-	/opt/go/bin/6l -o main main.6

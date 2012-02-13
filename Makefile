@@ -1,9 +1,9 @@
 include ${GOROOT}/src/Make.inc
 
-TARG=main
+TARG=forwarder
 
 GOFILES=\
         charset_reader.go\
-        main.go\
+        forwarder.go\
 
 include ${GOROOT}/src/Make.cmd

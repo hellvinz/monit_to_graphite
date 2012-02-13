@@ -99,7 +99,6 @@ func (graphite *Graphite) Setup() {
   serviceq = make(chan *Service)
   for {
     service := <-serviceq
-    log.Println("got service!")
     if service.Type == 5 {
       continue
     }
@@ -130,7 +129,6 @@ func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
   defer conn.Close()
   buffer := bytes.NewBufferString("")
   fmt.Fprintf(buffer, "monit.%s %s %d\n", metric, value, timestamp)
-  log.Println(buffer.String())
 	conn.Write(buffer.Bytes())
 }
 
@@ -143,8 +141,8 @@ func MonitServer(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Fatal(err)
   }
+  log.Println("Got message from", monit.Server.Localhostname)
   for _, service := range monit.Service {
-    log.Println("sending service!")
     serviceq <- &service
   }
 }
