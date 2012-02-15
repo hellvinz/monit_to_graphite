@@ -9,10 +9,18 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+    "os"
+    "errors"
 )
 
 var carbonAddress *string = flag.String("c", "localhost:2003", "carbon address")
 var forwarderAddress *string = flag.String("l", ":3005", "forwarder listening address")
+
+var ErrHelp = errors.New("flag: help requested")
+var Usage = func() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	flag.PrintDefaults()
+}
 
 type Server struct {
 	Id            string
@@ -146,6 +154,7 @@ func MonitServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+    flag.Parse()
 	log.Println("Forwarding m/monit to ", *carbonAddress)
 	graphite := Graphite{addr: *carbonAddress}
 	go graphite.Setup()

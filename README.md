@@ -4,9 +4,9 @@ The code is intended to forward events emitted by monit via it's m/monit interfa
 
 ## Compiling
 
-You need go r60.3
+You need go r1
 
-In the directory type make
+go get github.com/hellvinz/monit_to_graphite
 
 ## Setup
 
@@ -18,4 +18,4 @@ adapt the address to where you want monit to send the xml report it is generatin
 
 run the forwarder:
 
-./forwarder
+~/GOPATH/bin/monit_to_graphite
