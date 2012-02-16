@@ -23,75 +23,75 @@ var Usage = func() {
 }
 
 type Server struct {
-    Id            string
-    Incarnation   int
-    Version       string
-    Uptime        int
-    Poll          int
-    Localhostname string
+    Id            string `xml:"id"`
+    Incarnation   int `xml:"incarnation"`
+    Version       string `xml:"version"`
+    Uptime        int `xml:"uptime"`
+    Poll          int `xml:"poll"`
+    Localhostname string `xml:"localhostname"`
 }
 
 type Platform struct {
-    Name    string
-    Release string
-    Version string
-    Machine string
-    Cpu     int
-    Memory  int
+    Name    string `xml:"name"`
+    Release string `xml:"release"`
+    Version string `xml:"version"`
+    Machine string `xml:"machine"`
+    Cpu     int `xml:"cpu"`
+    Memory  int `xml:"memory"`
 }
 
 type Memory struct {
-    Percent       float64
-    Percenttotal  float64
-    Kilobyte      int
-    Kilobytetotal int
+    Percent       float64 `xml:"percent"`
+    Percenttotal  float64 `xml:"percenttotal"`
+    Kilobyte      int `xml:"kylobyte"`
+    Kilobytetotal int `xml:"kilobytetotal"`
 }
 
 type Cpu struct {
-    Percent      float64
-    Percenttotal float64
+    Percent      float64 `xml:"percent"`
+    Percenttotal float64 `xml:"percenttotal"`
 }
 
 type Load struct {
-    Avg01 float64
-    Avg05 float64
-    Avg15 float64
+    Avg01 float64 `xml:"avg01"`
+    Avg05 float64 `xml:"avg05"`
+    Avg15 float64 `xml:"avg15"`
 }
 
 type Cpusys struct {
-    User   float64
-    System float64
-    Wait   float64
+    User   float64 `xml:"user"`
+    System float64 `xml:"system"`
+    Wait   float64 `xml:"wait"`
 }
 
 type System struct {
-    Load   Load
-    Cpusys Cpusys
-    Memory Memory
+    Load   Load `xml:"load"`
+    Cpusys Cpusys `xml:"cpusys"`
+    Memory Memory `xml:"memory"`
 }
 
 type Service struct {
-    Collected_Sec int64
+    Collected_Sec int64 `xml:"collected_sec"`
     Type          int `xml:"attr"`
-    Name          string
-    Status        int
-    Monitor       int
-    MonitorMode   int
-    Pendingaction int
-    Pid           int
-    Ppid          int
-    Uptime        int
-    Children      int
-    Memory        Memory
-    Cpu           Cpu
-    Sytem         System
+    Name          string `xml:"name"`
+    Status        int `xml:"status"`
+    Monitor       int `xml:"monitor"`
+    MonitorMode   int `xml:"monitormode"`
+    Pendingaction int `xml:"pendingaction"`
+    Pid           int `xml:"pid"`
+    Ppid          int `xml:"ppid"`
+    Uptime        int `xml:"uptime"`
+    Children      int `xml:"children"`
+    Memory        Memory `xml:"memory"`
+    Cpu           Cpu `xml:"cpu"`
+    Sytem         System `xml:"system"`
 }
 
 type Monit struct {
     XMLName  xml.Name `xml:"monit"`
-    Server   Server
-    Platform Platform
-    Service  []Service
+    Server   Server `xml:"server"`
+    Platform Platform `xml:"platform"`
+    Service  []Service `xml:"service"`
 }
 
 type Graphite struct {
@@ -112,12 +112,12 @@ func (graphite *Graphite) Setup() {
         go graphite.Send(service.Name+".monitor", strconv.Itoa(service.Monitor), service.Collected_Sec)
         go graphite.Send(service.Name+".uptime", strconv.Itoa(service.Uptime), service.Collected_Sec)
         go graphite.Send(service.Name+".children", strconv.Itoa(service.Children), service.Collected_Sec)
-        go graphite.Send(service.Name+".memory.percent", strconv.FormatFloat(service.Memory.Percent, 'g', -1, 2), service.Collected_Sec)
-        go graphite.Send(service.Name+".memory.percent_total", strconv.FormatFloat(service.Memory.Percenttotal, 'g', -1, 2), service.Collected_Sec)
+        go graphite.Send(service.Name+".memory.percent", strconv.FormatFloat(service.Memory.Percent, 'g', -1, 64), service.Collected_Sec)
+        go graphite.Send(service.Name+".memory.percent_total", strconv.FormatFloat(service.Memory.Percenttotal, 'g', -1, 64), service.Collected_Sec)
         go graphite.Send(service.Name+".memory.kilobyte", strconv.Itoa(service.Memory.Kilobyte), service.Collected_Sec)
         go graphite.Send(service.Name+".memory.kylobytetotal", strconv.Itoa(service.Memory.Kilobytetotal), service.Collected_Sec)
-        go graphite.Send(service.Name+".cpu.percent", strconv.FormatFloat(service.Cpu.Percent, 'g', -1, 2), service.Collected_Sec)
-        go graphite.Send(service.Name+".cpu.percenttotal", strconv.FormatFloat(service.Cpu.Percenttotal, 'g', -1, 2), service.Collected_Sec)
+        go graphite.Send(service.Name+".cpu.percent", strconv.FormatFloat(service.Cpu.Percent, 'g', -1, 64), service.Collected_Sec)
+        go graphite.Send(service.Name+".cpu.percenttotal", strconv.FormatFloat(service.Cpu.Percenttotal, 'g', -1, 64), service.Collected_Sec)
     }
 }
 
@@ -137,8 +137,8 @@ func (graphite *Graphite) Send(metric string, value string, timestamp int64) {
                 continue
             }
         } else {
-            break
             defer conn.Close()
+            break
         }
     }
     buffer := bytes.NewBufferString("")
@@ -150,6 +150,9 @@ func MonitServer(w http.ResponseWriter, req *http.Request) {
     defer req.Body.Close()
     var monit Monit
     p := xml.NewDecoder(req.Body)
+    //b := new(bytes.Buffer)
+    //b.ReadFrom(req.Body)
+    //log.Fatal(b.String())
     p.CharsetReader = CharsetReader
     err := p.DecodeElement(&monit, nil)
     if err != nil {
